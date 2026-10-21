@@ -1,0 +1,13 @@
+export const huntStages=[
+ {id:'receipt',placeId:'maker-quarter-building-0',title:'A parcel with no address',story:'The café keeper has a torn delivery note. Its seal shows a tree with a tall trunk and spreading fronds. Which tree matches the seal?',choices:['Palm','Oak','Pine'],answer:0,hint:'Look at the palms lining Maker Walk.',clue:'The palm seal points to Civic Mall.'},
+ {id:'packing',placeId:'maker-quarter-building-1',title:'Pack the route',story:'The parcel contains books, a crate and fragile glass. Books must be collected before the crate. Glass must be collected last. What order works?',choices:['Glass → Books → Crate','Books → Crate → Glass','Crate → Glass → Books'],answer:1,hint:'Start with books, leave the fragile item until the end.',clue:'The final recipient works at Creative Tower.'},
+ {id:'recipient',placeId:'maker-quarter-building-5',title:'Choose the recipient',story:'The note says: “Give it to the library organiser, who is preparing a reading corner.” Which request matches?',choices:['Supplies for a car repair','Books for the reading corner','A menu for a café'],answer:1,hint:'What would the reading-corner organiser need?',clue:'Delivery understood. Return to the café to open the neighbourhood keepsake.'},
+ {id:'keepsake',placeId:'maker-quarter-building-0',title:'The reading corner',story:'The parcel was a box of donated books. Choose the welcoming message for its new corner.',choices:['Everyone has a story to share','Members only','Do not stop here'],answer:0,hint:'Choose an invitation that welcomes everyone.',clue:'You helped open a fictional reading corner. Your local journal now holds the Palm Parcel stamp.'}
+] as const;
+export interface HuntState {version:1;huntId:'palm-parcel';stage:number;paused:boolean;reached:string|null;hint:boolean;}
+export const initialHunt:HuntState={version:1,huntId:'palm-parcel',stage:0,paused:true,reached:null,hint:false};
+export function parseHunt(raw:unknown):HuntState{const p=raw as HuntState;if(!p||p.version!==1||p.huntId!=='palm-parcel'||!Number.isInteger(p.stage)||p.stage<0||p.stage>huntStages.length||typeof p.paused!=='boolean'||typeof p.hint!=='boolean'||p.reached!==null&&p.reached!==huntStages[p.stage]?.placeId)throw new Error('Incompatible or invalid hunt save. Your current progress was kept.');return {version:1,huntId:'palm-parcel',stage:p.stage,paused:p.paused,reached:p.reached,hint:p.hint};}
+export function answerHunt(state:HuntState,answer:number):HuntState{
+ const stage=huntStages[state.stage];if(state.paused||!stage||state.reached!==stage.placeId||stage.answer!==answer)return state;
+ return {...state,stage:state.stage+1,reached:null,hint:false};
+}

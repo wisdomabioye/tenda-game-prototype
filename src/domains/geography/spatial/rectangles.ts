@@ -1,0 +1,3 @@
+import type {Point} from '../../world/navigation/routes';
+export function rectangleFootprint(p:Point,w:number,d:number,r:number):Point[]{return [[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,z])=>({x:p.x+x*w/2*Math.cos(r)+z*d/2*Math.sin(r),y:p.y,z:p.z-x*w/2*Math.sin(r)+z*d/2*Math.cos(r)}));}
+export function rectanglesOverlap(a:Point[],b:Point[]){for(const poly of [a,b])for(let i=0;i<poly.length;i++){const p=poly[i],q=poly[(i+1)%poly.length],axis={x:-(q.z-p.z),z:q.x-p.x};const aa=a.map(v=>v.x*axis.x+v.z*axis.z),bb=b.map(v=>v.x*axis.x+v.z*axis.z);if(Math.max(...aa)<Math.min(...bb)-.2||Math.max(...bb)<Math.min(...aa)-.2)return false;}return true;}

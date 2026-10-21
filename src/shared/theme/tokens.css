@@ -1,0 +1,5 @@
+/* Game-specific presentation tokens; product data and rules stay in @tenda/shared. */
+@font-face{font-family:Adventure;src:url('/fonts/playful-bold.ttf');font-weight:700;font-display:swap}
+@font-face{font-family:Human;src:url('/fonts/body.ttf');font-weight:400;font-display:swap}
+@font-face{font-family:Human;src:url('/fonts/semibold.ttf');font-weight:600;font-display:swap}
+:root{--font-display:Adventure,'Trebuchet MS',sans-serif;--font-body:Human,system-ui,sans-serif;--ink:#183244;--muted:#506373;--night:#62cfff;--panel:#fff9ed;--panel-deep:#ffffff;--border:#d9e3e8;--cream:#fff9ed;--gold:#946000;--blue:#1672d4;--blue-shadow:#105baa;--mint:#72d572;--radius:24px;color-scheme:light;font-family:var(--font-body);font-size:14px;color:var(--ink);background:var(--night)}

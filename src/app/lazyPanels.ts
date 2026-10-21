@@ -1,0 +1,16 @@
+import {lazy} from 'react';
+export const RepairFinder=lazy(()=>import('../domains/explorer/challenge/RepairFinder').then(m=>({default:m.RepairFinder})));
+export const ChallengePanel=lazy(()=>import('../domains/explorer/challenge/ChallengePanel').then(m=>({default:m.ChallengePanel})));
+export const HuntPanel=lazy(()=>import('../domains/explorer/hunt/HuntPanel').then(m=>({default:m.HuntPanel})));
+export const MissionLab=lazy(()=>import('../domains/missions/engagement/Alerts').then(m=>({default:m.MissionLab})));
+export const ImportPanel=lazy(()=>import('../domains/places/importing/ImportPanel').then(m=>({default:m.ImportPanel})));
+export const PerformancePanel=lazy(()=>import('../domains/world/performance/PerformancePanel').then(m=>({default:m.PerformancePanel})));
+export const CharacterPanel=lazy(()=>import('../domains/explorer/character/CharacterPanel').then(m=>({default:m.CharacterPanel})));
+export const TrailPanel=lazy(()=>import('../domains/explorer/trail/TrailPanel').then(m=>({default:m.TrailPanel})));
+export const AuthorPanel=lazy(()=>import('../domains/places/authoring/AuthorPanel').then(m=>({default:m.AuthorPanel})));
+export const SoundPanel=lazy(()=>import('../domains/audio/SoundPanel').then(m=>({default:m.SoundPanel})));
+export const PlacePreview=lazy(()=>import('../domains/places/presentation/PlacePreview').then(m=>({default:m.PlacePreview})));
+export const AtlasDialog=lazy(()=>import('../domains/atlas/AtlasDialog').then(m=>({default:m.AtlasDialog})));
+export const MissionPreview=lazy(()=>import('../domains/missions/presentation/MissionPreview').then(m=>({default:m.MissionPreview})));
+export const Wayfinder=lazy(()=>import('../domains/explorer/wayfinding/Wayfinder').then(m=>({default:m.Wayfinder})));
+export const ExplorerGuide=lazy(()=>import('../shared/ui/ExplorerGuide').then(m=>({default:m.ExplorerGuide})));

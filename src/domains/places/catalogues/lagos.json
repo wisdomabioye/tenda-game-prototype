@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "cityId": "lagos",
+  "sample": true,
+  "places": [
+    {
+      "id": "sunny-kitchen",
+      "name": "Sunny Kitchen",
+      "type": "restaurant",
+      "coordinate": {
+        "longitude": 3.4216593295691173,
+        "latitude": 6.432515816959926
+      },
+      "building": {
+        "assetId": "crafted-osm/way/960914880",
+        "kind": "restaurant"
+      },
+      "entrance": {
+        "x": 0,
+        "z": -2.165487119636375
+      },
+      "missionIds": [
+        "sample-018"
+      ]
+    },
+    {
+      "id": "explorer-mall",
+      "name": "Explorer Mall",
+      "type": "mall",
+      "coordinate": {
+        "longitude": 3.422834035688262,
+        "latitude": 6.431989837208662
+      },
+      "building": {
+        "assetId": "crafted-osm/way/656066074",
+        "kind": "mall",
+        "facing": "original"
+      },
+      "entrance": {
+        "x": 0,
+        "z": -3.200526186012913
+      },
+      "missionIds": [
+        "sample-013",
+        "sample-014"
+      ]
+    },
+    {
+      "id": "harbour-office",
+      "name": "Harbour Office",
+      "type": "office",
+      "coordinate": {
+        "longitude": 3.422847349761727,
+        "latitude": 6.4316754798723235
+      },
+      "building": {
+        "assetId": "crafted-osm/way/656066073",
+        "kind": "office",
+        "facing": "reverse"
+      },
+      "entrance": {
+        "x": 0,
+        "z": -4.125
+      },
+      "missionIds": [
+        "sample-010"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+/* Secondary explorer controls share a bottom-corner disclosure; no permanent location stack. */
+.explorer-menu{position:absolute;right:20px;bottom:160px;z-index:18;color:var(--ink)}
+.explorer-menu summary{list-style:none;display:flex;align-items:center;gap:7px;min-height:44px;padding:8px 15px;background:var(--panel);border:1px solid #d7cbae;border-radius:24px;box-shadow:0 3px 12px #18324420;font-size:13px;font-weight:600;cursor:pointer;user-select:none}
+.explorer-menu summary::-webkit-details-marker{display:none}.explorer-menu summary:focus-visible{outline:3px solid var(--blue);outline-offset:3px}.explorer-menu summary i{font-style:normal;color:#1672d4}.explorer-menu[open] summary{background:#ffe381}
+.explorer-menu-panel{position:absolute;right:0;bottom:54px;width:280px;max-width:calc(100vw - 24px);max-height:min(55dvh,430px);overflow:auto;background:var(--panel);border:1px solid #d7cbae;border-radius:20px;padding:16px;box-shadow:0 10px 35px #18324425}
+.explorer-context{display:grid;gap:4px;margin-bottom:14px}.explorer-context strong{font-size:14px}.explorer-context small,.explorer-menu-panel>small{font-size:11px;color:var(--muted)}
+.explorer-menu-panel label{display:grid;gap:7px;font-size:12px}.explorer-menu-panel select{font:inherit;min-height:44px;width:100%;padding:8px;border:1px solid #c9c4b5;border-radius:12px;background:#fffdf5;color:var(--ink)}
+.explorer-menu-actions{display:grid;gap:6px;margin-top:12px}.explorer-menu-actions button{min-height:44px;text-align:left;border-radius:12px;padding:10px 12px;background:#f0eadb;font-size:13px;box-shadow:none}.menu-road{font-size:11px;line-height:1.5;color:var(--muted)}
+@media(max-width:600px){.explorer-menu{right:12px;bottom:163px}.explorer-menu summary{padding:9px 13px}.explorer-menu-panel{width:270px}}
+/* Keep the launcher out of a reading card's touch area. */
+main:has(.place-preview) .explorer-menu,main:has(.notice) .explorer-menu,main:has(.tool-panel) .explorer-menu,main:has(.shade) .explorer-menu{visibility:hidden}

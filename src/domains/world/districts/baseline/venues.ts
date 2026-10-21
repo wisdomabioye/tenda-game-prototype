@@ -1,0 +1,42 @@
+export const venues = [
+    {
+        category: "delivery",
+        name: "Dispatch house",
+        x: -20,
+        z: -12,
+        h: 0,
+        color: "#4b9ee8",
+    },
+    {
+        category: "photo",
+        name: "Creative rooftop",
+        x: 18,
+        z: -18,
+        h: 4,
+        color: "#f28b78",
+    },
+    {
+        category: "errand",
+        name: "Market courtyard",
+        x: -20,
+        z: 16,
+        h: 0,
+        color: "#f4bd49",
+    },
+    {
+        category: "service",
+        name: "Community garden",
+        x: 20,
+        z: 16,
+        h: 0,
+        color: "#70b9a0",
+    },
+    {
+        category: "digital",
+        name: "Digital workshop",
+        x: 0,
+        z: 30,
+        h: 0,
+        color: "#9b9cdd",
+    },
+] as const;

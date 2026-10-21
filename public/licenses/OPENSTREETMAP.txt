@@ -1,0 +1,8 @@
+Map data © OpenStreetMap contributors.
+OpenStreetMap data and the included OSM-derived map snapshot are licensed under the Open Data Commons Open Database License (ODbL) 1.0.
+https://www.openstreetmap.org/copyright
+https://opendatacommons.org/licenses/odbl/1-0/
+Raw small-area source: public/geodata/lagos-victoria-island.osm in the source package.
+Normalised derivative: src/domains/geography/data/lagos-victoria-island.json in the source package.
+Source export URL: https://api.openstreetmap.org/api/0.6/map?bbox=3.419,6.430,3.425,6.435
+Software code and artistic styling are separate from these map-data terms.

@@ -1,0 +1,35 @@
+import {PwaActions} from '../../domains/platform/pwa/PwaActions';
+import {GameButton,GameCard} from '../../shared/ui/game/GameUI';
+import './ExplorerMenu.css';
+import {useEffect,useRef} from 'react';
+import {districtManifest} from '../../domains/world/loading/manifest';
+interface Props {
+ worldReady:boolean;
+ city:string;country:string;count:number;district:string;hasDistricts:boolean;canAuthor:boolean;soundActive:boolean;road:string|null;
+ activityEnabled:boolean;onActivity:()=>void;onReplay:()=>void;
+ onImport:()=>void;onPerformance:()=>void;
+ onCharacter:()=>void;
+ onDistrict:(id:string)=>void;onSound:()=>void;onMute:()=>void;onAuthor:()=>void;
+}
+/** Non-modal disclosure: common map controls stay visible; secondary tools share one anchor. */
+export function ExplorerMenu(props:Props){
+ const root=useRef<HTMLDetailsElement>(null);
+ const close=()=>{if(root.current)root.current.open=false;};
+ useEffect(()=>{
+  const outside=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))close();};
+  const escape=(event:KeyboardEvent)=>{if(event.key==='Escape'&&root.current?.open){close();root.current.querySelector('summary')?.focus();}};
+  document.addEventListener('pointerdown',outside);document.addEventListener('keydown',escape);
+  return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',escape);};
+ },[]);
+ const action=(callback:()=>void)=>{close();callback();};
+ return <details className="explorer-menu" ref={root}>
+  <summary aria-label="Explorer controls"><span aria-hidden="true">☷</span><small>Tools</small></summary>
+  <GameCard className="explorer-menu-panel" aria-label="Explorer tools">
+   <div className="sound-status"><span>{props.soundActive?"♫ Sound on":"♫ Sound off"}</span><GameButton onClick={()=>props.soundActive?props.onMute():action(props.onSound)}>{props.soundActive?"Mute":"Choose sound"}</GameButton></div><div className="explorer-context"><strong>{props.city}, {props.country}</strong><small>{props.count} sample missions</small></div>
+   {props.hasDistricts?<label>District<select aria-label="Choose district" value={props.district} onChange={e=>action(()=>props.onDistrict(e.target.value))}>{districtManifest.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>:<small>Illustrative streets</small>}
+   {props.road&&<p className="menu-road">Selected road · {props.road}</p>}
+   <div className="explorer-menu-actions"><GameButton onClick={()=>action(props.onPerformance)}>◴ Performance</GameButton>{props.canAuthor&&<GameButton onClick={()=>action(props.onImport)}>⇧ Import places</GameButton>}<GameButton onClick={()=>action(props.onReplay)}>✦ Replay first adventure</GameButton><GameButton aria-pressed={props.activityEnabled} onClick={props.onActivity}>{props.activityEnabled?'Ⅱ Pause city activity':'▶ Resume city activity'}</GameButton><small className="activity-hint">Decorative neighbours and gentle shop movement. Reduced motion keeps them still.</small><GameButton onClick={()=>action(props.onCharacter)}>♙ Choose explorer</GameButton><GameButton onClick={()=>action(props.onSound)}>♫ Sound settings</GameButton>{props.soundActive&&<GameButton onClick={props.onMute} aria-label="Mute all sound">Mute</GameButton>}{props.canAuthor&&<GameButton onClick={()=>action(props.onAuthor)}>＋ Add sample place</GameButton>}</div>
+   <PwaActions ready={props.worldReady}/>
+  </GameCard>
+ </details>;
+}

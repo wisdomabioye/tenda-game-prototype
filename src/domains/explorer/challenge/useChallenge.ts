@@ -1,0 +1,9 @@
+import {createSaveQueue} from '../../../shared/storage/saveQueue';
+import {useLayoutEffect,useRef,useState} from 'react';
+import {readGameRecord,writeGameRecord} from '../../../shared/storage/gameRecords';
+import {initialChallenge,parseChallenge,initialRepairState,repairSaveKey,type Challenge} from './model';
+const sessionSaves=new Map<string,Challenge>();
+export function useChallenge(stationId='trial'){const [state,setState]=useState<Challenge>(initialChallenge),[ready,setReady]=useState(false),[message,setMessage]=useState('Opening local checkpoint…');const latest=useRef(state),queue=useRef(createSaveQueue()),active=useRef(stationId);active.current=stationId;const key=repairSaveKey(stationId);
+ useLayoutEffect(()=>{let alive=true;setReady(false);setState(sessionSaves.get(key)??initialRepairState(stationId));setMessage('Opening this station…');queue.current.pending.then(()=>readGameRecord(key)).then(record=>{if(!alive)return;const saved=sessionSaves.get(key)??(record?parseChallenge(record):initialRepairState(stationId));latest.current=saved;setState(saved);setMessage('Progress stays on this browser.');}).catch(()=>{if(alive)setMessage('Save unavailable or incompatible. Session only; use backup.');}).finally(()=>{if(alive)setReady(true);});return()=>{alive=false;};},[stationId,key]);
+ const commit=(next:Challenge)=>{const clean=parseChallenge(next),owner=stationId;sessionSaves.set(key,clean);latest.current=clean;setState(clean);setMessage('Saving…');const pending=queue.current.enqueue(()=>writeGameRecord(key,clean)).then(()=>{if(active.current===owner&&latest.current===clean)setMessage('Checkpoint saved on this browser.');}).catch(()=>{if(active.current===owner&&latest.current===clean)setMessage('NOT saved. Session only; use backup.');});return pending;};return {state,ready,message,commit,checkpoint:()=>queue.current.pending};}
+export type CourtyardChallenge=ReturnType<typeof useChallenge>;

@@ -1,0 +1,210 @@
+{
+  "id": "palm-street",
+  "cityId": "lagos",
+  "name": "Palm Street \u00b7 authored game block",
+  "bounds": {
+    "minX": 200,
+    "maxX": 270,
+    "minZ": -34,
+    "maxZ": 34
+  },
+  "spawn": {
+    "x": 205,
+    "y": 0,
+    "z": 0
+  },
+  "roads": [
+    {
+      "id": "palm-street",
+      "name": "Palm Street \u00b7 game street",
+      "width": 3.5,
+      "points": [
+        {
+          "x": 200,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 216,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 232,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 248,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 262,
+          "y": 0,
+          "z": 0
+        }
+      ]
+    },
+    {
+      "id": "courtyard-lane",
+      "name": "Reading Court Lane \u00b7 game street",
+      "width": 2.5,
+      "points": [
+        {
+          "x": 262,
+          "y": 0,
+          "z": -28
+        },
+        {
+          "x": 262,
+          "y": 0,
+          "z": 0
+        },
+        {
+          "x": 262,
+          "y": 0,
+          "z": 26
+        }
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "shop-0",
+      "name": "PALM BOOKS",
+      "kind": "office",
+      "position": {
+        "x": 216,
+        "y": 0,
+        "z": 12
+      },
+      "width": 15,
+      "depth": 13,
+      "floors": 2,
+      "color": "#d6a184",
+      "rotation": 0,
+      "missionIds": [],
+      "urbanStyle": "shop-house"
+    },
+    {
+      "id": "shop-1",
+      "name": "NEIGHBOUR APARTMENTS",
+      "kind": "office",
+      "position": {
+        "x": 232,
+        "y": 0,
+        "z": 12
+      },
+      "width": 15,
+      "depth": 13,
+      "floors": 4,
+      "color": "#b9bda0",
+      "rotation": 0,
+      "missionIds": [],
+      "urbanStyle": "apartments"
+    },
+    {
+      "id": "shop-2",
+      "name": "CORNER OFFICES",
+      "kind": "office",
+      "position": {
+        "x": 248,
+        "y": 0,
+        "z": 12
+      },
+      "width": 15,
+      "depth": 13,
+      "floors": 6,
+      "color": "#91b7bc",
+      "rotation": 0,
+      "missionIds": [],
+      "urbanStyle": "tower"
+    },
+    {
+      "id": "shop-3",
+      "name": "SUNNY BAKERY",
+      "kind": "office",
+      "position": {
+        "x": 216,
+        "y": 0,
+        "z": -12
+      },
+      "width": 15,
+      "depth": 13,
+      "floors": 2,
+      "color": "#e5c38d",
+      "rotation": 180,
+      "missionIds": [],
+      "urbanStyle": "arcade"
+    },
+    {
+      "id": "shop-4",
+      "name": "MAKER HOMES",
+      "kind": "office",
+      "position": {
+        "x": 232,
+        "y": 0,
+        "z": -12
+      },
+      "width": 15,
+      "depth": 13,
+      "floors": 3,
+      "color": "#bdabc5",
+      "rotation": 180,
+      "missionIds": [],
+      "urbanStyle": "terrace"
+    },
+    {
+      "id": "shop-5",
+      "name": "PRINT & PAPER",
+      "kind": "office",
+      "position": {
+        "x": 248,
+        "y": 0,
+        "z": -12
+      },
+      "width": 15,
+      "depth": 13,
+      "floors": 2,
+      "color": "#d39e8f",
+      "rotation": 180,
+      "missionIds": [],
+      "urbanStyle": "shop-house"
+    }
+  ],
+  "benches": [
+    {
+      "x": 259,
+      "y": 0,
+      "z": 7
+    },
+    {
+      "x": 259,
+      "y": 0,
+      "z": 21
+    }
+  ],
+  "trees": [
+    {
+      "x": 207,
+      "y": 0,
+      "z": 5
+    },
+    {
+      "x": 225,
+      "y": 0,
+      "z": 5
+    },
+    {
+      "x": 241,
+      "y": 0,
+      "z": -5
+    },
+    {
+      "x": 259,
+      "y": 0,
+      "z": -18
+    }
+  ]
+}

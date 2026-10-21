@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {createLagosCity} from '../src/domains/world/districts/configured/city';
+import {walkingRoute,distance} from '../src/domains/world/navigation/routes';
+import {validatePlaceImport} from '../src/domains/places/importing/model';
+import {summarizeFrames} from '../src/domains/world/performance/monitor';
+import {NullEngine} from '@babylonjs/core/Engines/nullEngine';
+import {Scene} from '@babylonjs/core/scene';
+import {createAssetContext} from '../src/domains/world/assets/core/context';
+import {createStreamedComposition} from '../src/domains/world/runtime/streamedComposition';
+import {createRoad} from '../src/domains/world/assets/streets';
+import {missions} from '../src/domains/missions/data/mockTenda';
+const city=createLagosCity();assert.equal(city.chunks?.length,4);assert.equal(city.places?.length,15);for(const p of city.places!){assert(p.reachable,p.name);const route=walkingRoute(city.settings.spawn,p.arrival,city.network);assert(route.length>0||distance(city.settings.spawn,p.arrival)<.2,`connected ${p.name}`);}
+assert(city.assets.filter(a=>a.kind==='road').every(a=>!('color' in a)||!a.color||a.color==='#fff0ce'),'one paving token across source, game and entrance roads');
+assert(city.network.every(s=>s.every(p=>p.nodeId)),'source graph IDs retained');assert.equal(missions.length,56);assert.equal(new Set(missions.map(m=>m.escrow_id)).size,56);for(const p of city.places!.filter(p=>p.id.startsWith('maker-quarter')))assert(p.missionIds.every(id=>missions.some(m=>m.escrow_id===id)));
+const record={id:'sample-shop',name:'Sample',type:'shop',latitude:6.434245415161339,longitude:3.4191808012857963,width:4,depth:4,rotation:0,floors:3,color:'#aabbcc'};
+assert.equal(validatePlaceImport({version:1,cityId:'lagos',authoredPlaces:[record]},city).length,1);const count=city.assets.length;assert.throws(()=>validatePlaceImport({version:1,cityId:'lagos',authoredPlaces:[record,{...record,id:'bad',latitude:0}]},city),/Place 2/);assert.equal(city.assets.length,count,'failed import is atomic');assert.throws(()=>validatePlaceImport({version:1,cityId:'other',authoredPlaces:[record]},city),/matching cityId/);
+assert.equal(summarizeFrames([10,20,30]).fps,50);assert.equal(summarizeFrames([10,20,30]).p95,30);
+const engine=new NullEngine(),scene=new Scene(engine),context=createAssetContext(scene);
+const stream=createStreamedComposition(context,{...city,assets:[],chunks:city.chunks!.map(c=>({...c,assets:[{kind:'tree',id:c.id,position:{x:(c.minX+c.maxX)/2,y:0,z:0}}]}))});stream.update({x:-60,y:0,z:0},{x:-60,y:0,z:0});assert.equal(stream.loaded.length,4);stream.update({x:180,y:0,z:0},{x:180,y:0,z:0});assert(stream.loaded.includes('maker-quarter'));assert(stream.loaded.includes('victoria-west'),'small city remains resident while panning');stream.dispose();assert.equal(scene.meshes.length,0);
+const road=createRoad(context,{id:'road test',segment:[{x:0,y:0,z:0},{x:10,y:0,z:0}]});assert.equal(road.meshes[0].getTotalVertices(),4,'paving surface has no offset vertical box faces at junctions');assert(road.bounds().min.y>.15,'road sits above flat ground');assert.equal(road.meshes[0].material?.name,'#fff0ce');road.dispose();context.dispose();scene.dispose();engine.dispose();console.log('city-composition-import: connected graph, mock links, atomic import, streaming disposal, paving clearance and frame statistics passed.');

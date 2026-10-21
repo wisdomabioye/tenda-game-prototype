@@ -1,0 +1,33 @@
+{
+  "name": "tenda-explorer-baseline",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "test": "node tests/run.mjs",
+    "build:browser": "npm run build",
+    "test:pwa": "node tests/pwa.mjs",
+    "test:challenge": "node --experimental-strip-types tests/challenge.mjs",
+    "test:mutations": "node scripts/check-mutations.mjs",
+    "check:architecture": "node tests/architecture.mjs",
+    "package": "python3 scripts/package.py",
+    "build:standalone": "tsc --noEmit && vite build --mode standalone && python3 scripts/standalone.py",
+    "test:build": "node tests/build-output.mjs"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^8.0.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "earcut": "3.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "typescript": "5.9.3",
+    "vite": "7.3.1",
+    "esbuild": "0.27.7",
+    "@types/earcut": "3.0.0"
+  }
+}

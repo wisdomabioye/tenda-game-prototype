@@ -1,0 +1,11 @@
+import {createHash} from 'node:crypto';
+import {readdir,readFile,writeFile} from 'node:fs/promises';
+import {resolve,relative} from 'node:path';
+import type {Plugin,ResolvedConfig} from 'vite';
+/** Exact build allowlist: never cache API requests or future private work data. */
+export function buildPwa():Plugin{let config:ResolvedConfig;return {name:'tenda-pwa',apply:'build',configResolved(c){config=c;},async closeBundle(){const root=resolve(config.root,config.build.outDir);async function walk(dir:string):Promise<string[]>{const entries=await readdir(dir,{withFileTypes:true});return (await Promise.all(entries.map(e=>e.isDirectory()?walk(resolve(dir,e.name)):Promise.resolve([resolve(dir,e.name)])))).flat();}const files=(await walk(root)).filter(p=>/\.(?:html|js|css|json|webmanifest|png|svg|ttf|woff2)$/.test(p)&&!p.endsWith('/sw.js')&&!relative(root,p).startsWith('.vite/')).sort();const paths=files.map(p=>relative(root,p).replaceAll('\\','/'));const hash=createHash('sha256');for(let i=0;i<files.length;i++){hash.update(paths[i]);hash.update(await readFile(files[i]));}const revision=hash.digest('hex').slice(0,16);await writeFile(resolve(root,'sw.js'),`const PRECACHE=${JSON.stringify(paths)};const PREFIX='tenda-explorer:'+new URL(self.registration.scope).pathname+':';const CACHE=PREFIX+'${revision}';const URLS=PRECACHE.map(p=>new URL(p,self.registration.scope).href);
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(URLS))));
+self.addEventListener('message',event=>{if(event.data?.type==='ACTIVATE_UPDATE')self.skipWaiting();});
+self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys()){if(key.startsWith(PREFIX)&&key!==CACHE)await caches.delete(key);}await self.clients.claim();})()));
+self.addEventListener('fetch',event=>{const request=event.request;if(request.method!=='GET')return;const url=new URL(request.url);if(url.origin!==self.location.origin)return;const root=new URL(self.registration.scope);const isShell=request.mode==='navigate'&&(url.pathname===root.pathname||url.pathname===root.pathname+'index.html');if(!isShell&&!URLS.includes(url.href))return;event.respondWith((async()=>{const cache=await caches.open(CACHE);const key=isShell?new URL('index.html',root).href:request;return await cache.match(key)||fetch(request);})());});
+`);}};}

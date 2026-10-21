@@ -1,0 +1,16 @@
+import {chooseDiscovery} from '../src/domains/explorer/adventure/discovery';
+import {createAsset} from '../src/domains/world/assets/core/asset';
+import assert from 'node:assert/strict';
+import {adventureTransition as transition,initialAdventure} from '../src/domains/explorer/adventure/model';
+import {NullEngine} from '@babylonjs/core/Engines/nullEngine';
+import {Scene} from '@babylonjs/core/scene';
+import {createAssetContext} from '../src/domains/world/assets/core/context';
+import {createCityActivity} from '../src/domains/world/activity/createCityActivity';
+import {resolveDistrict} from '../src/domains/world/districts/shared/resolve';
+import {places} from '../src/domains/atlas/places';
+let state=transition(initialAdventure,{type:'start'});assert.equal(state.step,'invite');state=transition(state,{type:'target',id:'a'});assert.equal(transition(state,{type:'arrive',id:'wrong'}).step,'walking');state=transition(state,{type:'arrive',id:'a'});assert.equal(transition(state,{type:'save',id:'a'}).step,'inspect','saving before reading does not complete introduction');state=transition(state,{type:'read',id:'a'});state=transition(state,{type:'save',id:'a'});assert.equal(state.step,'saved');state=transition(state,{type:'finish'});assert.equal(state.step,'done');assert.equal(transition(state,{type:'dismiss'}).step,'hidden');assert.deepEqual(transition(state,{type:'replay'}),initialAdventure);assert.equal(transition(transition(transition(initialAdventure,{type:'start'}),{type:'target',id:'a'}),{type:'redirect'}).target,null);
+const engine=new NullEngine(),scene=new Scene(engine),context=createAssetContext(scene),district=resolveDistrict(places.find(p=>p.id==='lagos')!,new Set());
+const shop=createAsset(context,{id:'test shop'},g=>{g.box('awning',1,2,0,4,.1,1,'#ffffff');g.box('awning stripe',2,2.1,0,.3,.1,1,'#ffffff');});const previous=shop.meshes.map(m=>({parent:m.parent,position:m.position.clone()}));
+const activity=createCityActivity(context,district,[shop],false);assert.equal(activity.counts.shopDetails,1);assert(activity.counts.pedestrians>0&&activity.counts.pedestrians<=12);assert(activity.counts.seated<=1);const actor=scene.transformNodes.find(n=>n.name==='ambient pedestrian 1')!;const position=actor.position.clone();for(let i=0;i<30;i++)activity.update(.05);assert(!actor.position.equals(position));activity.setEnabled(false);const paused=actor.position.clone();for(let i=0;i<30;i++)activity.update(.05);assert(actor.position.equals(paused));activity.setEnabled(true);activity.setReduced(true);activity.update(1);assert(actor.position.equals(paused));activity.setReduced(false);activity.update(.2);assert(!actor.position.equals(paused));activity.dispose();shop.meshes.forEach((mesh,i)=>{assert.equal(mesh.parent,previous[i].parent);assert(mesh.position.equals(previous[i].position));});shop.dispose();assert.equal(scene.meshes.length,0,'all decorative actor meshes disposed');context.dispose();scene.dispose();engine.dispose();console.log('adventure-city-activity: guided transitions, stale arrival rejection, read/save gate, activity bounds, pause/reduced motion and disposal passed.');
+
+assert.equal(chooseDiscovery([{id:'same venue',length:0},{id:'saved',length:12},{id:'new',length:20}],['saved'],8),'new');assert.equal(chooseDiscovery([{id:'bad',length:Infinity}],[]),null);

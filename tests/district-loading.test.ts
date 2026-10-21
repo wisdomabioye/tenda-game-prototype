@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {loadDistrict} from '../src/domains/world/loading/loader';
+const categories=new Set(['delivery','photo','errand','service','digital']);
+const signal=()=>new AbortController().signal;
+const nairobi={id:'nairobi',ground:'#e9cf9a'};
+const baseline=await loadDistrict(nairobi,categories,'city',signal());
+assert.equal(baseline.id,'nairobi');assert(!baseline.geographic);
+assert.strictEqual(await loadDistrict(nairobi,new Set([...categories].reverse()),'city',signal()),baseline,'same category set reuses the cached district');
+const lagos={id:'lagos',ground:'#efcf99'};
+const city=await loadDistrict(lagos,categories,'city',signal());assert.equal(city.frameId,'lagos-shared-frame');assert.equal(city.places?.length,15);
+const pilot=await loadDistrict(lagos,categories,'victoria',signal());assert.equal(pilot.frameId,'lagos-pilot-frame');
+const waterfront=await loadDistrict(lagos,categories,'waterfront',signal());assert.equal(waterfront.id,'lagos');assert(!waterfront.geographic);assert(waterfront.landmarks.length>0);
+const cancelled=new AbortController();cancelled.abort();
+await assert.rejects(loadDistrict(lagos,categories,'waterfront',cancelled.signal),{name:'AbortError'},'cached results must still respect cancellation');
+const pending=new AbortController();const stale=loadDistrict({id:'remote',ground:'#ffffff'},new Set(['digital']),'city',pending.signal);pending.abort();
+await assert.rejects(stale,{name:'AbortError'},'cancellation after a module request must not publish its result');
+const remote=await loadDistrict({id:'remote',ground:'#ffffff'},new Set(['digital']),'city',signal());assert.deepEqual(remote.venues.map(v=>v.category),['digital']);
+console.log('District async loading: independent factories, cache identity, cancelled cached/in-flight requests and remote category selection passed.');

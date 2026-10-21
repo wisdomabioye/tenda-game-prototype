@@ -1,0 +1,2 @@
+import {GameButton,GameIcon} from './GameUI';
+export function EmptyState({title,description,action,onAction,icon='places'}:{title:string;description:string;action:string;onAction:()=>void;icon?:'places'|'alerts'|'trail'}){return <div className="game-empty"><GameIcon name={icon}/><strong>{title}</strong><p>{description}</p><GameButton variant="primary" onClick={onAction}>{action}</GameButton></div>;}

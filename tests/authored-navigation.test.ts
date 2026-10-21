@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import {connectAuthoredStreets} from '../src/domains/world/navigation/authoredNetwork';
+import {walkingRoute,distance,type Point,type Segment} from '../src/domains/world/navigation/routes';
+import {steerOnStreet} from '../src/domains/world/navigation/steering';
+const p=(x:number,z:number,y=0):Point=>({x,y,z});
+// A shortcut ends in the middle of a long road, rather than at its authored endpoint.
+const roads:Segment[]=[[p(0,0),p(20,0)],[p(20,0),p(20,20)],[p(20,20),p(0,20)],[p(0,20),p(0,0)],[p(10,0),p(10,20)]];
+const key=(p:Point)=>`${p.x}/${p.y}/${p.z}`;
+const connected=connectAuthoredStreets(roads).map(s=>s.map(p=>({...p,nodeId:key(p)})) as unknown as Segment);
+const start=p(9,0),end=p(10,19),route=walkingRoute(start,end,connected);
+const length=route.reduce((sum,p,i)=>sum+distance(i?route[i-1]:start,p),0);
+assert.equal(length,20,'choose the short inner link instead of walking around the loop');
+let actor=p(9.6,0);
+for(let i=0;i<12;i++)actor=steerOnStreet(actor,{x:0,z:1},.1,connected);
+assert(Math.abs(actor.x-10)<.001&&actor.z>.7,'keyboard turns into an interior T junction without a click');
+const crossing=connectAuthoredStreets([[p(0,5),p(10,5)],[p(5,0),p(5,10)]]);
+assert.equal(crossing.length,4,'crossroads expose all four connected branches');
+const bridge=connectAuthoredStreets([[p(0,5),p(10,5)],[p(5,0,3),p(5,10,3)]]);
+assert.equal(bridge.length,2,'different heights do not fabricate a junction');
+const separated:Segment[]=[[{...p(0,5),nodeId:'a'},{...p(10,5),nodeId:'b'}],[{...p(5,0),nodeId:'c'},{...p(5,10),nodeId:'d'}]];
+assert.deepEqual(walkingRoute(p(0,5),p(5,10),separated),[],'imported source topology remains separate');
+console.log('Authored navigation: shortest loop shortcut, keyboard T turn, crossings and bridge separation passed.');

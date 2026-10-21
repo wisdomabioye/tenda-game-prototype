@@ -1,0 +1,14 @@
+import {GameButton,GameCard,CloseButton} from '../../../shared/ui/game/GameUI';
+import {useState} from 'react';
+import {huntStages} from './model';
+import type {Hunt} from './useHunt';
+export function HuntPanel({hunt,onGo,onCheckpoint,onClose}:{hunt:Hunt;onGo:(id:string)=>void;onCheckpoint:(id:string)=>void;onClose:()=>void}){
+ const [feedback,setFeedback]=useState(''),[backup,setBackup]=useState('');const step=huntStages[hunt.state.stage];
+ return <GameCard className="tool-panel" role="dialog" aria-label="Adventure journal"><CloseButton label="Close journal" onClick={onClose}/><small>LEISURE HUNT · NO PAID WORK</small><h2>The Palm Parcel</h2><p>{hunt.message}{hunt.saving?' Saving…':''}</p>
+ {!hunt.ready?<p>Opening journal…</p>:!step?<><h3>✦ Palm Parcel stamp</h3><p>The reading corner is open. Your discoveries are recorded locally.</p></>:<><p>Chapter {hunt.state.stage+1} of {huntStages.length} · {step.title}</p><p>{hunt.state.stage>0?`Previously: ${huntStages[hunt.state.stage-1].clue}`:'A café keeper needs help finding a parcel’s recipient. Follow the clues across Maker Quarter.'}</p>{hunt.state.stage>0&&<GameButton onClick={()=>onCheckpoint(huntStages[hunt.state.stage-1].placeId)}>Return to last game checkpoint</GameButton>}<GameButton onClick={()=>{hunt.resume();onGo(step.placeId);}}>Continue hunt · walk to clue</GameButton><GameButton onClick={hunt.pause} disabled={hunt.state.paused}>Pause hunt</GameButton>
+ {hunt.state.reached===step.placeId&&!hunt.state.paused?<><p>{step.story}</p>{step.choices.map((choice,i)=><GameButton className="hunt-choice" key={choice} onClick={()=>setFeedback(hunt.answer(i)?'Clue recorded. Continue when you are ready.':'Try another interpretation; no progress was lost.')}>{choice}</GameButton>)}<GameButton disabled={hunt.state.hint} onClick={()=>hunt.commit({...hunt.state,hint:true})}>Show a hint</GameButton>{hunt.state.hint&&<p>{step.hint}</p>}</>:<p>{hunt.state.paused?'Paused safely. Paid missions are always available independently.':'Follow the blue route. Open this journal after reaching the entrance.'}</p>}
+ </>}
+ <p role="status">{feedback}</p><h3>Discovery journal</h3><ol>{huntStages.slice(0,hunt.state.stage).map(s=><li key={s.id}>{s.clue}</li>)}</ol>
+ <details><summary>Local backup / restore</summary><p>Clearing browser data or changing device can lose progress. No cloud sync.</p><GameButton onClick={()=>setBackup(JSON.stringify(hunt.state,null,2))}>Export save as JSON</GameButton><textarea aria-label="Hunt backup JSON" maxLength={20000} rows={6} value={backup} onChange={e=>setBackup(e.target.value)}/><GameButton disabled={!hunt.ready} onClick={()=>{try{hunt.importSave(backup);setFeedback('Backup loaded; checkpoint storage status is shown above.');}catch(e){setFeedback(e instanceof Error?e.message:'Invalid backup');}}}>Restore JSON</GameButton></details>
+ </GameCard>;
+}

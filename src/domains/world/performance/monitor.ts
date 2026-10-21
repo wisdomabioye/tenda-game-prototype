@@ -1,0 +1,2 @@
+export interface PerformanceReport{fps:number;p95:number;meshes:number;activeMeshes:number;vertices:number;chunks:string[];loadMs:number;resolution:string;quality:string;heapMB:number|null;}
+export function summarizeFrames(frames:number[]){const sorted=frames.filter(n=>Number.isFinite(n)&&n>0).sort((a,b)=>a-b);return {fps:sorted.length?1000/(sorted.reduce((a,b)=>a+b,0)/sorted.length):0,p95:sorted[Math.max(0,Math.ceil(sorted.length*.95)-1)]??0};}
