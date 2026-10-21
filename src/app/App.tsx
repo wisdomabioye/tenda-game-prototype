@@ -8,7 +8,7 @@ import {useChallenge} from '../domains/explorer/challenge/useChallenge';
 import {CameraRecovery} from '../domains/explorer/wayfinding/CameraRecovery';
 import {useVisualViewport} from '../shared/ui/useVisualViewport';
 import {GameButton,DockButton} from '../shared/ui/game/GameUI';
-import {ArrivalAlert} from '../domains/missions/engagement/ArrivalAlert';
+import {useLocalPreference} from '../shared/storage/useLocalPreference';
 import {NavigationStatus} from '../domains/explorer/wayfinding/NavigationStatus';
 import {useMockTenda} from '../mock/tenda/useMockTenda';
 import {useHunt} from '../domains/explorer/hunt/useHunt';
@@ -37,6 +37,7 @@ import "../shared/theme/tokens.css";
 import "../shared/theme/styles.css";
 export function App() {
     const [worldReady,setWorldReady]=useState(false);
+    const [movementVisible,setMovementVisible]=useLocalPreference('tenda-movement-controls',raw=>raw===true,()=>false);
     const [repairStation,setRepairStation]=useState<string|null>(null);
     const challenge=useChallenge(repairStation??'trial');
     const [legacyJournal,setLegacyJournal]=useState(false);
@@ -174,24 +175,22 @@ export function App() {
       </nav>
       {district?.geographic && <MapCredit information={district?.geographic}/>}
       {hunt.ready&&/NOT saved|Session progress/i.test(hunt.message)&&<GameButton className="save-warning" onClick={()=>openPanel('hunt')}>Hunt save unavailable · open backup</GameButton>}
+      {!busy&&!hunt.state.paused&&huntStages[hunt.state.stage]&&<GameButton className="hunt-objective" onClick={()=>{openPanel('hunt');setLegacyJournal(true);}}>✦ {huntStages[hunt.state.stage].title} · Details</GameButton>}
       <NavigationStatus controls={controls}/>
       <CameraRecovery controls={controls} hidden={busy}/>
-      <ActorControls controls={controls} hidden={busy||!['hidden','done'].includes(adventure.state.step)}/>
+      <ActorControls controls={controls} movementVisible={movementVisible} onHideMovement={()=>setMovementVisible(false)} hidden={busy||!['hidden','done'].includes(adventure.state.step)}/>
       <footer aria-label="Explorer dock">
-        <DockButton icon="hunt" label="Hunt" active={journal} onClick={()=>openPanel(journal?'none':'hunt')}/>
+        <DockButton icon="hunt" label="Hunt" active={journal||trailPanel} onClick={()=>openPanel(journal?'none':'hunt')}/>
         <DockButton icon="alerts" label="Alerts" badge={newMatches.length} active={missionLab} onClick={()=>openPanel(missionLab?'none':'alerts')}/>
         <DockButton icon="places" label="Places" active={venuePicker} onClick={()=>openPanel(venuePicker?'none':'venues')}/>
-        <DockButton icon="trail" label="Trail" badge={trail.length} active={trailPanel} onClick={()=>openPanel(trailPanel?'none':'trail')}/>
-        <DockButton icon="guide" label="Guide" active={help} onClick={()=>openPanel(help?'none':'help')}/>
-      <ExplorerMenu worldReady={worldReady} onImport={()=>openPanel('import')} onPerformance={()=>openPanel('performance')} activityEnabled={activityEnabled} onActivity={toggleActivity} onReplay={()=>{hunt.pause();controls.current?.cancelJourney();setNotice(null);setInspected(null);setAdventureError('');adventure.dispatch({type:'replay'});}} onCharacter={()=>{openPanel('character');}} city={place.name} country={place.countryName} count={local.length} district={districtChoice} hasDistricts={place.id==='lagos'} canAuthor={Boolean(district?.geographic)} soundActive={sound.active} road={selectedRoad} onDistrict={id=>{adventure.dispatch({type:'redirect'});controls.current=null;setNotice(null);setInspected(null);setSelectedRoad(null);setDistrictChoice(id);}} onSound={()=>{setAuthor(false);openPanel('sound');}} onMute={sound.stop} onAuthor={()=>{setSoundPanel(false);openPanel('author');}}/>
+      <ExplorerMenu onOpen={()=>openPanel('none')} onHelp={()=>openPanel('help')} movementVisible={movementVisible} onMovement={()=>setMovementVisible(v=>!v)} worldReady={worldReady} onImport={()=>openPanel('import')} onPerformance={()=>openPanel('performance')} activityEnabled={activityEnabled} onActivity={toggleActivity} onReplay={()=>{hunt.pause();controls.current?.cancelJourney();setNotice(null);setInspected(null);setAdventureError('');adventure.dispatch({type:'replay'});}} onCharacter={()=>{openPanel('character');}} city={place.name} country={place.countryName} count={local.length} district={districtChoice} hasDistricts={place.id==='lagos'} canAuthor={Boolean(district?.geographic)} soundActive={sound.active} road={selectedRoad} onDistrict={id=>{adventure.dispatch({type:'redirect'});controls.current=null;setNotice(null);setInspected(null);setSelectedRoad(null);setDistrictChoice(id);}} onSound={()=>{setAuthor(false);openPanel('sound');}} onMute={sound.stop} onAuthor={()=>{setSoundPanel(false);openPanel('author');}}/>
       </footer>
 
       <LazyPanelBoundary resetKey={`${journal}:${repairStation}:${legacyJournal}:${missionLab}:${chart}:${help}:${venuePicker}:${author}:${soundPanel}:${characterPanel}:${trailPanel}:${importPanel}:${diagnostics}:${notice?.escrow_id}:${inspected?.id}`} onClose={()=>openPanel('none')}>
-      {journal&&!legacyJournal&&!repairStation&&<RepairFinder placeIds={district?.places?.filter(p=>p.reachable).map(p=>p.id)??[]} onClose={()=>setJournal(false)} onLegacy={()=>setLegacyJournal(true)} onVisit={id=>{setJournal(false);controls.current?.visitRepair(id);}}/>}
+      {journal&&!legacyJournal&&!repairStation&&<RepairFinder trailCount={trail.length} onTrail={()=>openPanel('trail')} placeIds={district?.places?.filter(p=>p.reachable).map(p=>p.id)??[]} onClose={()=>setJournal(false)} onLegacy={()=>setLegacyJournal(true)} onVisit={id=>{setJournal(false);controls.current?.visitRepair(id);}}/>}
       {journal&&!legacyJournal&&repairStation&&<ChallengePanel stationName={repairStations.find(s=>s.id===repairStation)?.name} game={challenge} onClose={()=>setJournal(false)} onLegacy={()=>setLegacyJournal(true)}/>}
       {journal&&legacyJournal&&<HuntPanel hunt={hunt} onCheckpoint={returnCheckpoint} onGo={goHunt} onClose={()=>setJournal(false)}/>}
       {missionLab&&<MissionLab mock={mock} watch={watch} setWatch={updateWatch} seen={seen} onInspect={inspectArrival} onClose={()=>setMissionLab(false)}/>}
-      {newMatches.length>0&&!busy&&(!hunt.state.paused||['hidden','done'].includes(adventure.state.step))&&<ArrivalAlert count={newMatches.length} mission={newMatches[0]} onInspect={()=>inspectArrival(newMatches[0])} onSave={()=>{if(!trail.includes(newMatches[0].escrow_id))toggleTrail(newMatches[0].escrow_id);setSeen(old=>new Set([...old,newMatches[0].escrow_id]));}} onDismiss={()=>setSeen(old=>new Set([...old,...newMatches.map(m=>m.escrow_id)]))}/>}
       {inspected && !chart && !journal && !missionLab && district?.places?.find(p=>p.id===inspected.id) && <PlacePreview place={district?.places.find(p=>p.id===inspected.id)!} arrived={inspected.arrived} missions={local} onClose={()=>setInspected(null)} onVisit={()=>controls.current?.visitPlace(inspected.id)} onMission={id=>controls.current?.visitPlace(inspected.id,id)}/>}
       {notice && !chart && !journal && !missionLab && (<MissionPreview arrived={arrivedNotice} mockWork={<MockWork missionId={notice.escrow_id} key={notice.escrow_id} state={mock.state(notice.escrow_id)} requiresApproval={notice.requires_approval} onAdvance={()=>{hunt.pause();mock.advance(notice);}}/>} guided={tutorialMission?{read:adventure.state.read,onRead:()=>adventure.dispatch({type:'read',id:notice.escrow_id}),onSaved:()=>{adventure.dispatch({type:'save',id:notice.escrow_id});setNotice(null);}}:undefined} onNextSaved={nextSavedMission?()=>visitSavedMission(nextSavedMission):undefined} locationNote={notice.remote?"Remote sample · no physical travel required":district?.geographic ? (district?.places?.find(p=>p.missionIds.includes(notice.escrow_id))?"Explicit sample place link · not a real task address":"Virtual sample hub · actual task address not mapped") : undefined} notice={notice} brief={brief} setBrief={setBrief} trail={trail} onSave={() => {toggleTrail(notice.escrow_id);if(tutorialMission&&!trail.includes(notice.escrow_id)){adventure.dispatch({type:'save',id:notice.escrow_id});setNotice(null);}}} onClose={() => {
                 setNotice(null);

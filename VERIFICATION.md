@@ -131,3 +131,11 @@ Mission locations now have grouped physical parcel boxes outside the lane, with 
 - Strict production TypeScript, default build, generated module-ownership/payload tests, PWA chunk/style cache tests, full regression suite (including district cache/abort checks), architecture checks, and optional standalone export passed.
 - Production-browser smoke check: scene loads; lazy atlas and character preview render with focus restored; Nairobi switches through its district loader; Tools reports offline readiness after the world loads. Proof: screenshots/split-build-atlas.png and screenshots/split-build-character.png. Cold renderer initialization in the test browser was slow; no actual-phone timing claim is made.
 - Whole-app coverage and physical-device performance remain unmeasured.
+
+## Mobile navigation cleanup — 21 October 2026
+- Four dock destinations: Hunt (including saved Trail), Alerts, Places, Tools (including Help).
+- Removed automatic arrival overlay and permanent activity shortcuts. Contextual nearby actions and object picking remain intact.
+- Movement pad defaults off, saves its preference, has a shared close button and releases held input when hidden.
+- Shared sheet gesture guard permits downward heading swipes without treating body scrolling as dismissal.
+- Added rendered-component regressions for unobstructed idle HUD, optional controls, hidden states and Trail access; test discovery now includes TSX suites.
+- Browser checked at 390×844: four-button dock, Tools opening, movement pad enable/close and Hunt entry. Actual physical-device gesture testing remains for mobile QA.

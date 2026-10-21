@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import {dismissSheetSwipe} from "./sheetGesture";
 export function useDialogFocus(active: boolean, context: unknown, onClose: () => void) {
     const callback = useRef(onClose);
     callback.current = onClose;
@@ -28,8 +29,25 @@ export function useDialogFocus(active: boolean, context: unknown, onClose: () =>
                 }
             }
         };
+        let swipe:{x:number;y:number}|null=null;
+        const start=(e:TouchEvent)=>{
+            const target=e.target as HTMLElement;
+            swipe=e.touches.length===1&&Boolean(target.closest('[role="dialog"],.notice,.place-preview')&&target.closest('h2,h3,[data-sheet-handle]'))
+                ?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null;
+        };
+        const end=(e:TouchEvent)=>{
+            if(swipe&&e.changedTouches.length===1&&dismissSheetSwipe(swipe,{x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY}))close();
+            swipe=null;
+        };
+        const cancel=()=>{swipe=null;};
+        document.addEventListener('touchstart',start,{passive:true});
+        document.addEventListener('touchend',end,{passive:true});
+        document.addEventListener('touchcancel',cancel);
         document.addEventListener("keydown", key);
         return () => {
+            document.removeEventListener('touchstart',start);
+            document.removeEventListener('touchend',end);
+            document.removeEventListener('touchcancel',cancel);
             document.removeEventListener("keydown", key);
             const current=document.activeElement;
             // A new HUD opener owns focus during panel-to-panel switches.

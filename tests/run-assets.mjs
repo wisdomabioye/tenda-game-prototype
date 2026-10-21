@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 const directory = await mkdtemp(join(tmpdir(), "tenda-asset-tests-"));
 try {
-  const entries=(await readdir(new URL('.',import.meta.url))).filter(name=>name.endsWith('.test.ts')).sort();
+  const entries=(await readdir(new URL('.',import.meta.url))).filter(name=>/\.test\.tsx?$/.test(name)).sort();
   for(const entry of entries){
   const outfile = join(directory, entry+".mjs");
   await build({
@@ -15,6 +15,7 @@ try {
     format: "esm",
     outfile,
     logLevel: "warning",
+    banner: entry.endsWith(".tsx") ? {js:'import {createRequire} from "node:module";const require=createRequire(import.meta.url);'} : undefined,
   });
   await import(pathToFileURL(outfile).href);
   }

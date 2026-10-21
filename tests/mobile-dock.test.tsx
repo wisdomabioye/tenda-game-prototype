@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {ActorControls} from '../src/domains/explorer/actions/ActorControls';
+import {RepairFinder} from '../src/domains/explorer/challenge/RepairFinder';
+import {dismissSheetSwipe} from '../src/shared/ui/sheetGesture';
+const controls={current:null};
+const quiet=renderToStaticMarkup(<ActorControls controls={controls} hidden={false} movementVisible={false} onHideMovement={()=>{}}/>);
+assert.equal(quiet,'<div class="actor-hud"></div>','Idle HUD must not obscure the city with hints or activity shortcuts');
+const enabled=renderToStaticMarkup(<ActorControls controls={controls} hidden={false} movementVisible onHideMovement={()=>{}}/>);
+assert.match(enabled,/Move forward/);assert.match(enabled,/Hide movement controls/);
+assert.doesNotMatch(enabled,/Go to parcel|Go to rest|Find an activity/);
+assert.equal(renderToStaticMarkup(<ActorControls controls={controls} hidden movementVisible onHideMovement={()=>{}}/>),'');
+const hunt=renderToStaticMarkup(<RepairFinder trailCount={3} onTrail={()=>{}} placeIds={[]} onVisit={()=>{}} onClose={()=>{}} onLegacy={()=>{}}/>);
+assert.match(hunt,/Saved Trail · 3/);assert.match(hunt,/Close repair finder/);
+assert.equal(dismissSheetSwipe({x:0,y:0},{x:10,y:80}),true);
+for(const end of [{x:0,y:40},{x:0,y:-100},{x:90,y:80}])assert.equal(dismissSheetSwipe({x:0,y:0},end),false);
+console.log('Mobile HUD: idle is unobstructed, optional pad and Hunt trail remain reachable, swipe intent guarded.');

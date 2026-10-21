@@ -57,3 +57,12 @@ footer:has(.explorer-menu[open]){z-index:75}
 .arrival-alert:not(.is-expanded) .arrival-summary{min-height:36px;padding:6px 10px!important}
 .arrival-alert.is-expanded{top:calc(70px + env(safe-area-inset-top,0px));bottom:auto;left:12px;max-height:calc(100dvh - 210px);overflow:auto}
 @media(max-width:600px){footer{width:360px}footer .explorer-menu{right:auto;bottom:auto}}
+
+/* Four stable dock destinations; activity actions only appear in context. */
+footer{width:300px}
+.movement-pad--visible{background:#fff3d5;border:1px solid #d7c38d;border-radius:16px;padding:46px 8px 8px;width:224px}
+.movement-pad--visible>div{position:static;width:auto;padding:0;box-shadow:none;border:0}
+.movement-pad--visible>.close{position:absolute;top:2px;right:3px}
+@media(max-width:600px){footer{width:300px}.actor-hud{bottom:150px}.actor-action{max-width:230px}.actor-action>span{font-size:12px}}
+.hunt-objective{position:absolute;top:76px;left:12px;z-index:40;max-width:calc(100vw - 85px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;padding:7px 10px;background:#fff5d9}
+@media(max-width:600px){.tool-panel h2,.tool-panel h3{touch-action:pan-x}.tool-panel h2:after{content:' ';display:block;width:34px;height:4px;background:#d0b573;border-radius:4px;margin-top:8px}}

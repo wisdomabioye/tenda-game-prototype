@@ -8,7 +8,7 @@ export function ExplorerGuide({ trailCount, onClose, geographic = false, }: {
       <GameCard className="compact-modal" role="dialog" aria-modal="true" aria-label="Explorer guide">
         <CloseButton label="Close guide" onClick={() => onClose()}/>
         <h2>A little world of possibility.</h2><p>Demo explorer · sample missions · no live transactions. Source roads are combined with illustrative game scenery.</p>
-        <p>WASD or arrow keys move your explorer; hold Shift to move faster. E interacts with the nearby bench or parcel table. Escape pauses the explorer when no panel is open. The Move control provides touch equivalents and shortcuts to the bench/table. Activities and held items save on this browser when storage is available. After reloading, choose Resume to continue.</p><p>
+        <p>WASD or arrow keys move your explorer; hold Shift to move faster. E interacts with the nearby bench or parcel table. Escape pauses the explorer when no panel is open. Tap a bench, parcel table or food stall to approach it, then use the nearby action. Tools → Show movement controls enables the optional touch direction pad. Activities and held items save on this browser when storage is available. After reloading, choose Resume to continue.</p><p>
           Tap a numbered notice to walk there. Drag to explore; pinch to zoom.
           In Look around, one-finger dragging turns the camera through 360°.
         </p>
