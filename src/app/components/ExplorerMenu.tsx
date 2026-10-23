@@ -4,6 +4,7 @@ import './ExplorerMenu.css';
 import {useEffect,useRef} from 'react';
 import {districtManifest} from '../../domains/world/loading/manifest';
 interface Props {
+ recordingCount?:number;
  onOpen:()=>void;onHelp:()=>void;movementVisible:boolean;onMovement:()=>void;
  worldReady:boolean;
  city:string;country:string;count:number;district:string;hasDistricts:boolean;canAuthor:boolean;soundActive:boolean;road:string|null;
@@ -24,7 +25,7 @@ export function ExplorerMenu(props:Props){
  },[]);
  const action=(callback:()=>void)=>{close();callback();};
  return <details className="explorer-menu" ref={root} onToggle={e=>{if(e.currentTarget.open)props.onOpen();}}>
-  <summary aria-label="Explorer controls"><span aria-hidden="true">☷</span><small>Tools</small></summary>
+  <summary aria-label="Explorer controls"><span aria-hidden="true">☷</span><small>Tools</small>{props.recordingCount!==undefined&&<b className="benchmark-badge" title={`Recording benchmark · ${props.recordingCount}/30`} aria-label={`Recording benchmark · ${props.recordingCount}/30`}>{props.recordingCount}</b>}</summary>
   <GameCard className="explorer-menu-panel" aria-label="Explorer tools">
    <CloseButton label="Close tools" onClick={close}/><h2>Tools</h2><div className="sound-status"><span>{props.soundActive?"♫ Sound on":"♫ Sound off"}</span><GameButton onClick={()=>props.soundActive?props.onMute():action(props.onSound)}>{props.soundActive?"Mute":"Choose sound"}</GameButton></div><div className="explorer-context"><strong>{props.city}, {props.country}</strong><small>{props.count} sample missions</small></div>
    {props.hasDistricts?<label>District<select aria-label="Choose district" value={props.district} onChange={e=>action(()=>props.onDistrict(e.target.value))}>{districtManifest.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}</select></label>:<small>Illustrative streets</small>}

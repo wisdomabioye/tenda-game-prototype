@@ -66,3 +66,6 @@ footer{width:300px}
 @media(max-width:600px){footer{width:300px}.actor-hud{bottom:150px}.actor-action{max-width:230px}.actor-action>span{font-size:12px}}
 .hunt-objective{position:absolute;top:76px;left:12px;z-index:40;max-width:calc(100vw - 85px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;padding:7px 10px;background:#fff5d9}
 @media(max-width:600px){.tool-panel h2,.tool-panel h3{touch-action:pan-x}.tool-panel h2:after{content:' ';display:block;width:34px;height:4px;background:#d0b573;border-radius:4px;margin-top:8px}}
+
+
+.explorer-menu summary{position:relative}.benchmark-badge{position:absolute;top:2px;right:5px;border-radius:8px;background:#187b66;color:white;font-size:9px;line-height:16px;padding:0 4px;border:1px solid #fff8e8}

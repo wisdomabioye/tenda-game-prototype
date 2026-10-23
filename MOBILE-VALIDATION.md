@@ -16,11 +16,17 @@ Record phone model, OS/browser version, portrait/landscape, quality setting and 
 4. Open a sample mission and a new-arrival alert; verify they do not obscure critical controls or leave the old mission visible during travel.
 5. Continue playing for at least ten minutes. Note heat, stutters, disappearing assets, blur, flickering paths and delayed input. Repeat the same route before comparing settings.
 
-## Built-in rendering snapshot
+## Record an actual gameplay run
 
-Tools → Performance shows rolling frame statistics, scene-ready time, geometry/detail counts, render resolution/quality and an optional browser heap estimate. Choose Balanced, Record30 seconds, then Export benchmark JSON. Repeat with Light at the same camera/location.
+1. Open Tools → Performance and choose **Light**. It now saves the selection for reloads and city changes.
+2. Tap **Record 30 gameplay samples**, close diagnostics and walk the same route through Connected city. Rotate, pan, inspect a mission and use a nearby activity. A green count badge on Tools confirms recording continues.
+3. Reopen Tools → Performance after 30 foreground samples and export the JSON. Opening menus may contribute samples too; keep the route consistent.
+4. Repeat in **Balanced** from the same camera view/location. Allow a few seconds after changing quality before recording. Do not compare unlike camera views or different districts.
+5. Continue normal play for 10–15 minutes and report heat, input delay and whether performance declines. Compare an ordinary browser tab and installed PWA separately.
 
-**Recorder limitation:** the diagnostics panel blocks character movement, and closing it ends recording. These samples measure rendering with diagnostics open; they are not a full gameplay benchmark. Recording independently of the panel is not implemented. For a normal gameplay timeline, use Android Chrome remote debugging or iPhone Safari Web Inspector from a connected computer.
+Recording survives closing diagnostics and stops after 30 samples or Stop recording. Hidden tabs and periods without an active scene are skipped. Samples last only for this page session; export before reloading. Export version 2 includes draw calls, active-mesh evaluation, render-target and render-submission CPU timings, ambient activity cost, district, view, camera radius, shadow state and hidden-detail count. CPU submission time is not GPU execution time. Render-target work can alternate between frames.
+
+Light disables real-time sun shadows/local point lights, budgets ambient residents to four nearby characters at reduced update frequency, and omits small distant scenery pieces. Main building bodies, navigation, signs and interactions stay available. Balanced restores full decorative activity/detail. Opaque static scenery uses colour batching in both modes; it preserves geometry and per-asset identity rather than globally merging the city.
 
 Investigate sustained FPS below30, p95 frame intervals above50ms, repeated stalls, growing memory after comparable return trips and deterioration as the phone heats up. These are investigation thresholds, not guaranteed device budgets.
 
@@ -30,4 +36,4 @@ Investigate sustained FPS below30, p95 frame intervals above50ms, repeated stall
 
 After one successful online preparation, test offline relaunch, background/foreground return, installed-app safe areas and local save recovery. Check a future update only after saving progress. Game saves remain local to the browser/origin; clearing browser data can remove them.
 
-Native-device results remain pending until actual phone runs are supplied. See VERIFICATION.md for automated and browser checks already performed.
+Earlier iPhone 13 Pro and Tecno Spark 40C reports are available; a new Tecno run is required to measure this performance pass. See VERIFICATION.md for automated and browser checks already performed.

@@ -31,8 +31,13 @@ export function createCityActivity(context:AssetContext,district:DistrictDefinit
   for(const mesh of meshes){mesh.parent=pivot;mesh.position.subtractInPlace(origin);}
   return {pivot,originals};
  });
- let enabled=true,reduceMotion=reduced,time=0;
- return {setReduced(value:boolean){reduceMotion=value;},setEnabled(value:boolean){enabled=value;},update(dt:number){if(!enabled||reduceMotion)return;time+=dt;for(const state of walkers){if(!state.walker.moving){state.pause-=dt;if(state.pause<=0){
+ let enabled=true,reduceMotion=reduced,time=0,light=false,clock=0,budgetClock=0;
+ return {setLight(value:boolean){light=value;if(!light)actors.forEach(actor=>actor.root.setEnabled(true));},setReduced(value:boolean){reduceMotion=value;},setEnabled(value:boolean){enabled=value;},update(dt:number){
+ budgetClock+=dt;const nearby=player?.();
+ if(light&&nearby&&budgetClock>=.25){budgetClock=0;const visible=new Set([...actors].sort((a,b)=>distance(a.root.position,nearby)-distance(b.root.position,nearby)).filter(a=>distance(a.root.position,nearby)<65).slice(0,4));actors.forEach(actor=>actor.root.setEnabled(visible.has(actor)));}
+ if(!enabled||reduceMotion)return;
+ clock+=dt;if(light&&clock<.1)return;dt=Math.min(clock,.15);clock=0;
+ time+=dt;for(const state of walkers){if(light&&!state.actor.root.isEnabled())continue;if(!state.walker.moving){state.pause-=dt;if(state.pause<=0){
  const places=(district.places??[]).filter(p=>p.reachable&&distance(p.arrival,state.actor.root.position)>4);
  const place=state.sequence%3!==0&&places.length?places[(state.sequence*7)%places.length]:undefined;
  const target=place?.arrival??choosePedestrianStop(state.actor.root.position,state.previous,stops,state.sequence);state.sequence++;

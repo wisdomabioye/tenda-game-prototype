@@ -1,3 +1,6 @@
+import {readJsonPreference,writeJsonPreference} from '../../../shared/storage/jsonPreferences';
+import {createSceneMetrics} from '../performance/sceneMetrics';
+import {createDetailBudget} from '../visibility/detailBudget';
 import {createMissionStops} from '../../missions/world/MissionStops';
 import {DESTINATION_COLOR} from '../../explorer/wayfinding/palette';
 import type {Appearance} from '../../explorer/character/appearance';
@@ -50,13 +53,15 @@ export function mountWorld(canvas: HTMLCanvasElement, labels: HTMLDivElement, di
     try {
         const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         const engine = new Engine(canvas, true, {
-            preserveDrawingBuffer: true,
+            preserveDrawingBuffer: false,
             stencil: true,
         });
         scope.defer(() => engine.dispose());
         engine.setHardwareScalingLevel(hardwareScale(window.devicePixelRatio));
         const scene = new Scene(engine);
         scope.defer(() => scene.dispose());
+        const metrics=createSceneMetrics(scene);scope.defer(metrics.dispose);
+        const detailBudget=createDetailBudget(district.assets);scope.defer(detailBudget.restore);let hiddenDetails=0,activityMs=0;
         scene.clearColor = Color4.FromHexString("#8bd9edff");
         scene.fogMode = Scene.FOGMODE_LINEAR;
         scene.fogColor = Color3.FromHexString("#8bd9ed");
@@ -136,7 +141,7 @@ export function mountWorld(canvas: HTMLCanvasElement, labels: HTMLDivElement, di
         refreshPicking();
         shadows.sync();
         const frames:number[]=[];let loadMs=0,qualityMode:'auto'|'balanced'|'light'='auto',light=false,slowSeconds=0,chunkClock=0;
-        const setQuality=(mode:'auto'|'balanced'|'light')=>{qualityMode=mode;light=mode==='light';shadows.setLight(light);slowSeconds=0;engine.setHardwareScalingLevel(hardwareScale(window.devicePixelRatio)*(light?1.4:1));engine.resize();};
+        const setQuality=(mode:'auto'|'balanced'|'light',persist=true)=>{if(persist)writeJsonPreference('tenda-render-quality',mode);qualityMode=mode;light=mode==='light';shadows.setLight(light);scene.shadowsEnabled=!light;streetLights.setLight(light);activity.setLight(light);hiddenDetails=detailBudget.update(composition.assets,camera.target,player.position,light);slowSeconds=0;engine.setHardwareScalingLevel(hardwareScale(window.devicePixelRatio)*(light?1.4:1));engine.resize();};
         let solidsRevision=-1,worldSolids:ReturnType<AssetInstance['movementSolids']>=[];
         const currentSolids=()=>{if(solidsRevision!==composition.revision){solidsRevision=composition.revision;worldSolids=composition.assets.flatMap(a=>a.movementSolids());}return [...worldSolids,...missionStops.solids()];};
         physical=createPhysicalActions(context,explorer,walker,camera,district.network,district.settings.spawn,()=>motionQuery.matches,controller.home,()=>{destination.clear();onTravel();},{districtId:district.id,solids:currentSolids});scope.defer(physical.dispose);scope.defer(bindActorKeyboard(physical));shadows.sync();const physicalTargets=new Map<AbstractMesh,StationId>(physical.targets);physical.targets.forEach(([mesh])=>{mesh.isPickable=true;});
@@ -147,7 +152,7 @@ export function mountWorld(canvas: HTMLCanvasElement, labels: HTMLDivElement, di
             returnToCheckpoint:(id)=>{const p=district.places?.find(p=>p.id===id&&p.reachable);if(p){walker.cancel();destination.clear();delete labels.dataset.selectedPlace;delete labels.dataset.selectedMission;player.position.copyFromFloats(p.arrival.x,p.arrival.y,p.arrival.z);controller.home();beacon.highlight();}},
             markHunt:huntWorld.set,journey:()=>({moving:walker.moving,progress:walker.progress,...destination.state()}),
             setMissions:(next)=>{missions=next;missionStops.setMissions(next);refreshMissionTargets();markers.dispose();markers=createMarkerLayer(labels,canvas,scene,engine,camera,district.venues,missions,district.landmarks,reduced,{onVisit:route,onLandmark:visitLandmark,missionStops:missionStops.stops,player:()=>player.position});},
-            performance:():PerformanceReport=>({...summarizeFrames(frames),meshes:scene.meshes.length,activeMeshes:scene.getActiveMeshes().length,vertices:scene.getTotalVertices(),chunks:composition.loaded,loadMs,resolution:`${engine.getRenderWidth()} × ${engine.getRenderHeight()}`,quality:qualityMode+(light?' (light)':''),heapMB:(performance as Performance & {memory?:{usedJSHeapSize:number}}).memory?.usedJSHeapSize?((performance as Performance & {memory:{usedJSHeapSize:number}}).memory.usedJSHeapSize/1048576):null}),
+            performance:():PerformanceReport=>({...summarizeFrames(frames),...metrics.read(),activityMs,hiddenDetails,shadows:scene.shadowsEnabled,district:district.id,view:controller.mode,cameraRadius:camera.radius,meshes:scene.meshes.length,activeMeshes:scene.getActiveMeshes().length,vertices:scene.getTotalVertices(),chunks:composition.loaded,loadMs,resolution:`${engine.getRenderWidth()} × ${engine.getRenderHeight()}`,quality:qualityMode+(light&&qualityMode==='auto'?' (light)':''),heapMB:(performance as Performance & {memory?:{usedJSHeapSize:number}}).memory?.usedJSHeapSize?((performance as Performance & {memory:{usedJSHeapSize:number}}).memory.usedJSHeapSize/1048576):null}),
             quality:setQuality,
             cancelJourney:()=>{walker.cancel();destination.clear();delete labels.dataset.selectedMission;delete labels.dataset.selectedPlace;},
             setActivity:enabled=>{activity.setEnabled(enabled);physical?.setActivity(enabled);},
@@ -183,13 +188,14 @@ export function mountWorld(canvas: HTMLCanvasElement, labels: HTMLDivElement, di
             onTap: (point) => {const target=snapToStreet(point,district.network);destination.select(target,'Selected spot');delete labels.dataset.selectedPlace;delete labels.dataset.selectedMission;const accepted=travelTo(target,()=>{destination.arrive();beacon.highlight();});return accepted;},
         });
         scope.defer(input.dispose);
+        setQuality(readJsonPreference('tenda-render-quality',raw=>raw==='light'||raw==='balanced'?raw:'auto',()=> 'auto' as const),false);
         let lastTime = performance.now();
         const frame = () => {
             const now = performance.now(), dt = Math.min(0.05, (now - lastTime) / 1000);
             const elapsed=now-lastTime;lastTime = now;
-            if(!document.hidden&&elapsed>0&&elapsed<1000){frames.push(elapsed);if(frames.length>120)frames.shift();if(qualityMode==='auto'&&!light){slowSeconds=elapsed>40?slowSeconds+elapsed/1000:Math.max(0,slowSeconds-dt);if(slowSeconds>3){setQuality('light');qualityMode='auto';}}}
-            chunkClock+=dt;if(chunkClock>.25){chunkClock=0;composition.update(camera.target,player.position);refreshPicking();shadows.sync();streetLights.update(camera.target);}
-            if(!document.hidden&&!physical?.paused)activity.update(dt);
+            if(!document.hidden&&elapsed>0&&elapsed<1000){frames.push(elapsed);if(frames.length>120)frames.shift();if(qualityMode==='auto'&&!light){slowSeconds=elapsed>40?slowSeconds+elapsed/1000:Math.max(0,slowSeconds-dt);if(slowSeconds>3){setQuality('light',false);qualityMode='auto';}}}
+            chunkClock+=dt;if(chunkClock>.25){chunkClock=0;composition.update(camera.target,player.position);refreshPicking();shadows.sync();streetLights.update(camera.target);hiddenDetails=detailBudget.update(composition.assets,camera.target,player.position,light);}
+            const activityStart=performance.now();if(!document.hidden&&!physical?.paused)activity.update(dt);activityMs=performance.now()-activityStart;
             controller.tick(dt);
             const physicallyActing=physical?.update(dt);
             if(!physical?.paused&&!physicallyActing)walker.update(dt);

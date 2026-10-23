@@ -1,3 +1,4 @@
+import {batchStaticMeshes} from './staticBatch';
 import type { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
@@ -88,6 +89,7 @@ export function createAsset(ctx: AssetContext, placement: AssetPlacement, draw: 
     };
     try {
         draw(g);
+        if(ctx.batchStatic){batchStaticMeshes(meshes,ctx);for(const mesh of meshes)mesh.parent=root;}
     }
     catch (error) {
         root.dispose(false, false);

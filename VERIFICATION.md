@@ -139,3 +139,13 @@ Mission locations now have grouped physical parcel boxes outside the lane, with 
 - Shared sheet gesture guard permits downward heading swipes without treating body scrolling as dismissal.
 - Added rendered-component regressions for unobstructed idle HUD, optional controls, hidden states and Trail access; test discovery now includes TSX suites.
 - Browser checked at 390×844: four-button dock, Tools opening, movement pad enable/close and Hunt entry. Actual physical-device gesture testing remains for mobile QA.
+
+## Budget Android performance pass — 23 October 2026
+
+- Motivation: user-supplied Tecno Spark 40C reports averaged about 7.1/7.2 FPS in Auto-light/Balanced; device improvement remains unmeasured until a new phone run.
+- Added draw-call, active-mesh evaluation, render-target/render-submission CPU timings and ambient-update cost, alongside district/view/radius and quality state. Different camera views and shadow-refresh frames must not be compared as identical workloads.
+- Light disables real-time shadows/local point lights; keeps up to four nearby decorative residents at reduced update frequency; budgets small/detailed distant scenery with hysteresis. Balanced restores detail and ambient residents. Quality selection persists through reloads and city changes.
+- Opaque static scenery is batched per asset with vertex colours; a palm falls from nine draw meshes to one with unchanged vertices and colours. Interactive props and textured/emissive/animated parts remain separate. No whole-building distance removal was introduced.
+- Browser smoke on the production build: Light metrics show shadows disabled; walking/place inspection and camera rotation work; recording survives diagnostics closure, completes at 30 foreground samples and exports version-2 JSON with timings. This is desktop evidence, not Tecno FPS evidence.
+- New behavioral tests cover preserved geometry/colour, protected mission props, near-player/Balanced restoration, bounded residents and recorder lifecycle. Three in-memory mutants (hide mission props, remove sample bound, flatten colours to white) each fail a behavioral assertion; baseline passes.
+- Build, source architecture, chunk boundaries/PWA checks and full regression suite pass. Retest procedure is in MOBILE-VALIDATION.md; stable 30 FPS remains a target rather than a claimed result.

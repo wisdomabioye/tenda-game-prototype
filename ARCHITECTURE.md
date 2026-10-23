@@ -58,3 +58,9 @@ Large road graphs, much larger crowds, GPU/memory budgets, actual-phone controls
 ## Production loading boundaries
 
 Application state remains eager; optional presentation lives behind `app/lazyPanels.ts` and a shared loading/error boundary. World rendering and district factories have independent async boundaries. Renderer-ready callbacks gate initial offline precaching. Default builds now use content hashes and separate font/feature CSS assets; inspect actual chunk ownership with `test:build` after building. See BUILD-SPLITTING.md.
+
+## Performance ownership
+
+`world/performance/recorder.ts` owns a bounded foreground-sample session; `useBenchmark` mounts at the app level, so lazy diagnostics may close without losing the run. Scene instrumentation belongs to the mounted Babylon scene and is disposed with it. Timings are CPU submission/evaluation measures, not GPU timings.
+
+`assets/core/staticBatch.ts` combines opaque static colour geometry per asset using vertex colours and the existing shared material registry. Textured/emissive materials and animated awnings stay separate. Per-asset roots, sockets, collision bounds and picking identity are preserved. `visibility/detailBudget.ts` owns only the detail visibility it changed; near-player and near-camera detail are protected and Balanced restores those meshes. Crowd budgets and local light budgets remain in their own domains.

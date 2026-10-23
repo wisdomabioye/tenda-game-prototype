@@ -8,6 +8,7 @@ import {useChallenge} from '../domains/explorer/challenge/useChallenge';
 import {CameraRecovery} from '../domains/explorer/wayfinding/CameraRecovery';
 import {useVisualViewport} from '../shared/ui/useVisualViewport';
 import {GameButton,DockButton} from '../shared/ui/game/GameUI';
+import {useBenchmark} from '../domains/world/performance/useBenchmark';
 import {useLocalPreference} from '../shared/storage/useLocalPreference';
 import {NavigationStatus} from '../domains/explorer/wayfinding/NavigationStatus';
 import {useMockTenda} from '../mock/tenda/useMockTenda';
@@ -67,6 +68,7 @@ export function App() {
     const {appearance,setAppearance}=useAppearance();
     const [pendingStop,setPendingStop]=useState<string|null>(null);
     const controls = useRef<Controls | null>(null),inspectionRevision=useRef(0);
+    const benchmark=useBenchmark(controls);
     const { trail, toggleTrail,moveTrail } = useTrail();
     useDialogFocus(Boolean(notice)||Boolean(inspected)||journal||missionLab||chart || help || venuePicker || author || soundPanel || characterPanel || trailPanel || importPanel || diagnostics, `${repairStation}:${legacyJournal}:${notice?.escrow_id}:${inspected?.id}:${journal}:${missionLab}:${country}:${chart}:${help}:${venuePicker}:${author}:${soundPanel}:${characterPanel}:${trailPanel}:${importPanel}:${diagnostics}`, () => {
         setNotice(null);setInspected(null);setJournal(false);setMissionLab(false);setChart(false);
@@ -183,7 +185,7 @@ export function App() {
         <DockButton icon="hunt" label="Hunt" active={journal||trailPanel} onClick={()=>openPanel(journal?'none':'hunt')}/>
         <DockButton icon="alerts" label="Alerts" badge={newMatches.length} active={missionLab} onClick={()=>openPanel(missionLab?'none':'alerts')}/>
         <DockButton icon="places" label="Places" active={venuePicker} onClick={()=>openPanel(venuePicker?'none':'venues')}/>
-      <ExplorerMenu onOpen={()=>openPanel('none')} onHelp={()=>openPanel('help')} movementVisible={movementVisible} onMovement={()=>setMovementVisible(v=>!v)} worldReady={worldReady} onImport={()=>openPanel('import')} onPerformance={()=>openPanel('performance')} activityEnabled={activityEnabled} onActivity={toggleActivity} onReplay={()=>{hunt.pause();controls.current?.cancelJourney();setNotice(null);setInspected(null);setAdventureError('');adventure.dispatch({type:'replay'});}} onCharacter={()=>{openPanel('character');}} city={place.name} country={place.countryName} count={local.length} district={districtChoice} hasDistricts={place.id==='lagos'} canAuthor={Boolean(district?.geographic)} soundActive={sound.active} road={selectedRoad} onDistrict={id=>{adventure.dispatch({type:'redirect'});controls.current=null;setNotice(null);setInspected(null);setSelectedRoad(null);setDistrictChoice(id);}} onSound={()=>{setAuthor(false);openPanel('sound');}} onMute={sound.stop} onAuthor={()=>{setSoundPanel(false);openPanel('author');}}/>
+      <ExplorerMenu recordingCount={benchmark.recording?benchmark.samples.length:undefined} onOpen={()=>openPanel('none')} onHelp={()=>openPanel('help')} movementVisible={movementVisible} onMovement={()=>setMovementVisible(v=>!v)} worldReady={worldReady} onImport={()=>openPanel('import')} onPerformance={()=>openPanel('performance')} activityEnabled={activityEnabled} onActivity={toggleActivity} onReplay={()=>{hunt.pause();controls.current?.cancelJourney();setNotice(null);setInspected(null);setAdventureError('');adventure.dispatch({type:'replay'});}} onCharacter={()=>{openPanel('character');}} city={place.name} country={place.countryName} count={local.length} district={districtChoice} hasDistricts={place.id==='lagos'} canAuthor={Boolean(district?.geographic)} soundActive={sound.active} road={selectedRoad} onDistrict={id=>{adventure.dispatch({type:'redirect'});controls.current=null;setNotice(null);setInspected(null);setSelectedRoad(null);setDistrictChoice(id);}} onSound={()=>{setAuthor(false);openPanel('sound');}} onMute={sound.stop} onAuthor={()=>{setSoundPanel(false);openPanel('author');}}/>
       </footer>
 
       <LazyPanelBoundary resetKey={`${journal}:${repairStation}:${legacyJournal}:${missionLab}:${chart}:${help}:${venuePicker}:${author}:${soundPanel}:${characterPanel}:${trailPanel}:${importPanel}:${diagnostics}:${notice?.escrow_id}:${inspected?.id}`} onClose={()=>openPanel('none')}>
@@ -201,7 +203,7 @@ export function App() {
       {characterPanel && <CharacterPanel appearance={appearance} onApply={profile=>{setAppearance(profile);if(adventure.state.step==='invite')adventure.dispatch({type:'start'});}} onClose={()=>setCharacterPanel(false)}/>}
       {trailPanel && <TrailPanel trail={trail} missions={missions} localIds={local.map(m=>m.escrow_id)} active={nextStop} onDiscover={()=>openPanel('venues')} onMove={moveTrail} onRemove={toggleTrail} onClose={()=>setTrailPanel(false)} onVisit={visitSavedMission}/>}
       {importPanel&&district?.geographic&&<ImportPanel district={district} onImport={records=>{setNotice(null);setInspected(null);setAuthored(current=>[...current,...records]);}} onClose={()=>setImportPanel(false)}/>}
-      {diagnostics&&<PerformancePanel controls={controls.current} onClose={()=>setDiagnostics(false)}/>}
+      {diagnostics&&<PerformancePanel benchmark={benchmark} controls={controls.current} onClose={()=>setDiagnostics(false)}/>}
       {author && district?.geographic && <AuthorPanel district={district} records={authored} onAdd={r=>{setNotice(null);setInspected(null);setAuthored(a=>[...a,r]);}} onClose={()=>setAuthor(false)}/>}
       {soundPanel && <SoundPanel sound={sound} onClose={()=>setSoundPanel(false)}/>}
       <AdventureCoach error={adventureError} state={adventure.state} busy={busy||!hunt.state.paused} ready={Boolean(district)} title={local.find(m=>m.escrow_id===adventure.state.target)?.title} onDismiss={()=>{adventure.dispatch({type:'dismiss'});setAdventureError('');}} onStart={()=>adventure.dispatch({type:'start'})} onCharacter={()=>openPanel('character')} onGo={()=>beginDiscovery()} onRetry={()=>beginDiscovery(true)} onTrail={()=>{adventure.dispatch({type:'finish'});openPanel('trail');}} onMore={()=>{adventure.dispatch({type:'finish'});beginDiscovery(false,true);}}/>

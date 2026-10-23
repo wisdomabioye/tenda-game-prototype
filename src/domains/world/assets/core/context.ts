@@ -6,6 +6,7 @@ export function createAssetContext(scene: Scene) {
     const materials = new Map<string, StandardMaterial>();
     return {
         scene,
+        batchStatic:false,
         material: (hex: string) => {
             let material = materials.get(hex);
             if (!material) {
