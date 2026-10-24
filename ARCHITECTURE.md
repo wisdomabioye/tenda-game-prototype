@@ -64,3 +64,11 @@ Application state remains eager; optional presentation lives behind `app/lazyPan
 `world/performance/recorder.ts` owns a bounded foreground-sample session; `useBenchmark` mounts at the app level, so lazy diagnostics may close without losing the run. Scene instrumentation belongs to the mounted Babylon scene and is disposed with it. Timings are CPU submission/evaluation measures, not GPU timings.
 
 `assets/core/staticBatch.ts` combines opaque static colour geometry per asset using vertex colours and the existing shared material registry. Textured/emissive materials and animated awnings stay separate. Per-asset roots, sockets, collision bounds and picking identity are preserved. `visibility/detailBudget.ts` owns only the detail visibility it changed; near-player and near-camera detail are protected and Balanced restores those meshes. Crowd budgets and local light budgets remain in their own domains.
+
+### Steady-frame scenery
+
+`assets/core/staticTransforms.ts` caches matrices/bounds for explicitly static authored kits. Animated fabric is excluded. `composeAssets.refreshTransforms()` refreshes authored edits, bumps the cache revision, updates occlusion bounds and rebuilds instance placement. Actor and activity-kit transforms stay dynamic.
+
+`assets/core/sceneryInstances.ts` groups only identical, opaque, non-pickable trees/palms with matching height/material in compact 60-unit spatial cells. It shares GPU geometry and keeps original asset records for bounds/identity. Unsupported hardware, mirrored transforms, unique shapes and activity furniture retain ordinary meshes. Sources and originals are disposed as one composition; failed allocation cleans partial batches.
+
+`runtime/frameTasks.ts` runs at most one due decorative task per frame with fair service and no catch-up bursts. Navigation, camera, actor simulation and marker projection remain per frame. Marker spacing also remains per frame, but batches all layout reads before style writes. Shadow caster registration is event driven; quality changes force a refresh.

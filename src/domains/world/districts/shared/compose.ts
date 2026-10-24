@@ -1,3 +1,5 @@
+import {cacheStaticTransforms} from '../../assets/core/staticTransforms';
+import {createSceneryInstances} from '../../assets/core/sceneryInstances';
 import { instantiate, type AssetSpec } from "../../assets/registry";
 import type { AssetContext } from "../../assets/core/context";
 export function composeAssets(ctx: AssetContext, specs: AssetSpec[]) {
@@ -20,10 +22,17 @@ export function composeAssets(ctx: AssetContext, specs: AssetSpec[]) {
             asset.dispose();
         throw error;
     }
+    const frozenKinds=new Set([...staticKinds,'slab','road','ramp','courtyard','boardwalk','pier','pergola','bench','seat','streetSign','sign','notice','streetLamp']);
+    const transforms:ReturnType<typeof cacheStaticTransforms>[]=[];
+    let instances:ReturnType<typeof createSceneryInstances>;
+    try{for(let i=0;i<assets.length;i++)if(frozenKinds.has(specs[i].kind))transforms.push(cacheStaticTransforms(assets[i]));instances=createSceneryInstances(ctx.scene,assets,specs);}catch(error){assets.forEach(asset=>asset.dispose());throw error;}
     return {
+        refreshTransforms:()=>{transforms.forEach(t=>t.refresh());instances.refresh();},
+        instanceCounts:()=>instances.counts,
         assets,
-        occluders: assets.flatMap((a) => a.occluders()),
+        get occluders(){return assets.flatMap((a) => a.occluders());},
         dispose: () => {
+            instances.dispose();
             for (const asset of assets)
                 asset.dispose();
         },

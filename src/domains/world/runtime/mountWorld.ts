@@ -1,4 +1,5 @@
 import {readJsonPreference,writeJsonPreference} from '../../../shared/storage/jsonPreferences';
+import {createFrameTasks} from './frameTasks';
 import {createSceneMetrics} from '../performance/sceneMetrics';
 import {createDetailBudget} from '../visibility/detailBudget';
 import {createMissionStops} from '../../missions/world/MissionStops';
@@ -140,8 +141,8 @@ export function mountWorld(canvas: HTMLCanvasElement, labels: HTMLDivElement, di
         };
         refreshPicking();
         shadows.sync();
-        const frames:number[]=[];let loadMs=0,qualityMode:'auto'|'balanced'|'light'='auto',light=false,slowSeconds=0,chunkClock=0;
-        const setQuality=(mode:'auto'|'balanced'|'light',persist=true)=>{if(persist)writeJsonPreference('tenda-render-quality',mode);qualityMode=mode;light=mode==='light';shadows.setLight(light);scene.shadowsEnabled=!light;streetLights.setLight(light);activity.setLight(light);hiddenDetails=detailBudget.update(composition.assets,camera.target,player.position,light);slowSeconds=0;engine.setHardwareScalingLevel(hardwareScale(window.devicePixelRatio)*(light?1.4:1));engine.resize();};
+        const frames:number[]=[];let loadMs=0,qualityMode:'auto'|'balanced'|'light'='auto',light=false,slowSeconds=0,maintenanceMs=0;
+        const setQuality=(mode:'auto'|'balanced'|'light',persist=true)=>{if(persist)writeJsonPreference('tenda-render-quality',mode);qualityMode=mode;light=mode==='light';shadows.setLight(light);scene.shadowsEnabled=!light;streetLights.setLight(light);activity.setLight(light);hiddenDetails=detailBudget.update(composition.assets,camera.target,player.position,light);shadows.sync(true);slowSeconds=0;engine.setHardwareScalingLevel(hardwareScale(window.devicePixelRatio)*(light?1.4:1));engine.resize();};
         let solidsRevision=-1,worldSolids:ReturnType<AssetInstance['movementSolids']>=[];
         const currentSolids=()=>{if(solidsRevision!==composition.revision){solidsRevision=composition.revision;worldSolids=composition.assets.flatMap(a=>a.movementSolids());}return [...worldSolids,...missionStops.solids()];};
         physical=createPhysicalActions(context,explorer,walker,camera,district.network,district.settings.spawn,()=>motionQuery.matches,controller.home,()=>{destination.clear();onTravel();},{districtId:district.id,solids:currentSolids});scope.defer(physical.dispose);scope.defer(bindActorKeyboard(physical));shadows.sync();const physicalTargets=new Map<AbstractMesh,StationId>(physical.targets);physical.targets.forEach(([mesh])=>{mesh.isPickable=true;});
@@ -151,8 +152,8 @@ export function mountWorld(canvas: HTMLCanvasElement, labels: HTMLDivElement, di
             visitRepair,
             returnToCheckpoint:(id)=>{const p=district.places?.find(p=>p.id===id&&p.reachable);if(p){walker.cancel();destination.clear();delete labels.dataset.selectedPlace;delete labels.dataset.selectedMission;player.position.copyFromFloats(p.arrival.x,p.arrival.y,p.arrival.z);controller.home();beacon.highlight();}},
             markHunt:huntWorld.set,journey:()=>({moving:walker.moving,progress:walker.progress,...destination.state()}),
-            setMissions:(next)=>{missions=next;missionStops.setMissions(next);refreshMissionTargets();markers.dispose();markers=createMarkerLayer(labels,canvas,scene,engine,camera,district.venues,missions,district.landmarks,reduced,{onVisit:route,onLandmark:visitLandmark,missionStops:missionStops.stops,player:()=>player.position});},
-            performance:():PerformanceReport=>({...summarizeFrames(frames),...metrics.read(),activityMs,hiddenDetails,shadows:scene.shadowsEnabled,district:district.id,view:controller.mode,cameraRadius:camera.radius,meshes:scene.meshes.length,activeMeshes:scene.getActiveMeshes().length,vertices:scene.getTotalVertices(),chunks:composition.loaded,loadMs,resolution:`${engine.getRenderWidth()} × ${engine.getRenderHeight()}`,quality:qualityMode+(light&&qualityMode==='auto'?' (light)':''),heapMB:(performance as Performance & {memory?:{usedJSHeapSize:number}}).memory?.usedJSHeapSize?((performance as Performance & {memory:{usedJSHeapSize:number}}).memory.usedJSHeapSize/1048576):null}),
+            setMissions:(next)=>{missions=next;missionStops.setMissions(next);refreshMissionTargets();shadows.sync();markers.dispose();markers=createMarkerLayer(labels,canvas,scene,engine,camera,district.venues,missions,district.landmarks,reduced,{onVisit:route,onLandmark:visitLandmark,missionStops:missionStops.stops,player:()=>player.position});},
+            performance:():PerformanceReport=>({...summarizeFrames(frames),...metrics.read(),activityMs,maintenanceMs,instancedScenery:composition.instanceCounts.instances,savedDrawMeshes:composition.instanceCounts.savedDrawMeshes,hiddenDetails,shadows:scene.shadowsEnabled,district:district.id,view:controller.mode,cameraRadius:camera.radius,meshes:scene.meshes.length,activeMeshes:scene.getActiveMeshes().length,vertices:scene.getTotalVertices(),chunks:composition.loaded,loadMs,resolution:`${engine.getRenderWidth()} × ${engine.getRenderHeight()}`,quality:qualityMode+(light&&qualityMode==='auto'?' (light)':''),heapMB:(performance as Performance & {memory?:{usedJSHeapSize:number}}).memory?.usedJSHeapSize?((performance as Performance & {memory:{usedJSHeapSize:number}}).memory.usedJSHeapSize/1048576):null}),
             quality:setQuality,
             cancelJourney:()=>{walker.cancel();destination.clear();delete labels.dataset.selectedMission;delete labels.dataset.selectedPlace;},
             setActivity:enabled=>{activity.setEnabled(enabled);physical?.setActivity(enabled);},
@@ -161,7 +162,7 @@ export function mountWorld(canvas: HTMLCanvasElement, labels: HTMLDivElement, di
                 return chooseDiscovery(candidates,excludeIds,minimumDistance);
             },
             markAdventure:(id)=>{if(id===adventureSignId)return;adventureSignId=id;adventureSign?.dispose();adventureSign=undefined;const mission=missions.find(m=>m.id===id),target=mission&&destinationFor(mission);if(target)adventureSign=createStreetSign(context,{id:'first-adventure-sign',position:{x:target.x+2,y:target.y,z:target.z},name:'First discovery →',crossStreet:'Sample mission'});},
-            setCharacter:next=>{if(currentAppearance&&currentAppearance.mobility!==next.mobility)physical?.leaveSeat();currentAppearance=next;explorer.setAppearance(next);physical?.refreshPose();},
+            setCharacter:next=>{if(currentAppearance&&currentAppearance.mobility!==next.mobility)physical?.leaveSeat();currentAppearance=next;explorer.setAppearance(next);physical?.refreshPose();shadows.sync();},
             setTrail:(stops,active)=>trailMarkers.set(stops.flatMap(stop=>{const mission=missions.find(m=>m.id===stop.id),point=mission&&(missionStops.forMission(mission.id)?.position??destinationFor(mission));return mission&&point?[{...stop,title:mission.title,point}]:[];}),active),
             inspectPlace,visitPlace,currentView:()=>controller.mode,
             north: controller.north,
@@ -189,12 +190,17 @@ export function mountWorld(canvas: HTMLCanvasElement, labels: HTMLDivElement, di
         });
         scope.defer(input.dispose);
         setQuality(readJsonPreference('tenda-render-quality',raw=>raw==='light'||raw==='balanced'?raw:'auto',()=> 'auto' as const),false);
+        const maintenance=createFrameTasks([
+            {id:'composition',interval:.25,run:()=>{const revision=composition.revision;composition.update(camera.target,player.position);refreshPicking();if(revision!==composition.revision)shadows.sync();}},
+            {id:'lighting',interval:.25,run:()=>streetLights.update(camera.target)},
+            {id:'detail',interval:.25,run:()=>{hiddenDetails=detailBudget.update(composition.assets,camera.target,player.position,light);}},
+        ]);
         let lastTime = performance.now();
         const frame = () => {
             const now = performance.now(), dt = Math.min(0.05, (now - lastTime) / 1000);
             const elapsed=now-lastTime;lastTime = now;
             if(!document.hidden&&elapsed>0&&elapsed<1000){frames.push(elapsed);if(frames.length>120)frames.shift();if(qualityMode==='auto'&&!light){slowSeconds=elapsed>40?slowSeconds+elapsed/1000:Math.max(0,slowSeconds-dt);if(slowSeconds>3){setQuality('light',false);qualityMode='auto';}}}
-            chunkClock+=dt;if(chunkClock>.25){chunkClock=0;composition.update(camera.target,player.position);refreshPicking();shadows.sync();streetLights.update(camera.target);hiddenDetails=detailBudget.update(composition.assets,camera.target,player.position,light);}
+            const maintenanceStart=performance.now();if(!document.hidden)maintenance.tick(elapsed/1000);maintenanceMs=performance.now()-maintenanceStart;
             const activityStart=performance.now();if(!document.hidden&&!physical?.paused)activity.update(dt);activityMs=performance.now()-activityStart;
             controller.tick(dt);
             const physicallyActing=physical?.update(dt);

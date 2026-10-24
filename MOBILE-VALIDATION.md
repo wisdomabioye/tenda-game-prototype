@@ -37,3 +37,9 @@ Investigate sustained FPS below30, p95 frame intervals above50ms, repeated stall
 After one successful online preparation, test offline relaunch, background/foreground return, installed-app safe areas and local save recovery. Check a future update only after saving progress. Game saves remain local to the browser/origin; clearing browser data can remove them.
 
 Earlier iPhone 13 Pro and Tecno Spark 40C reports are available; a new Tecno run is required to measure this performance pass. See VERIFICATION.md for automated and browser checks already performed.
+
+## Steady-frame retest
+
+The next pass adds `maintenanceMs`, `instancedScenery` and `savedDrawMeshes` to version-2 exports. `savedDrawMeshes` is the potential reduction from grouped resident scenery, not a promise about the draw calls visible at every camera angle. Unsupported devices report zero instanced scenery and use normal meshes.
+
+Repeat the same Light-mode route/camera movements used in reports (4)/(5), then export 30 foreground samples. Compare sampled FPS, p95, mesh-evaluation time and render-submission time. Include a 10–15-minute session before another capture to assess heat-related deterioration. The prior Light run averaged 27 FPS (21.9–35.6); steadier 30 FPS remains the target, not an established outcome. Check that palms/trees retain placement, building fades still reveal the player, signs stay readable while panning, and quality changes restore shadows/detail.
